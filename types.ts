@@ -29,6 +29,8 @@ export interface TestData {
   unit: string;
   duration: number;
   questions: Question[];
+  testCode?: string;
+  isPublished?: boolean;
 }
 
 export interface StudentResult {

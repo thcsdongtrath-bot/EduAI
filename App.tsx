@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Grade, TestType, TestData, StudentResult, UserRole } from './types';
 import Sidebar from './components/Sidebar';
 import TeacherDashboard from './components/TeacherDashboard';
@@ -11,19 +11,41 @@ import RoleSelector from './components/RoleSelector';
 const App: React.FC = () => {
   const [userRole, setUserRole] = useState<UserRole>(UserRole.NONE);
   const [currentView, setCurrentView] = useState<View>(View.TEACHER_DASHBOARD);
-  const [activeTest, setActiveTest] = useState<TestData | null>(null);
-  const [results, setResults] = useState<StudentResult[]>([]);
+  
+  // Load initial state from localStorage
+  const [activeTest, setActiveTest] = useState<TestData | null>(() => {
+    const saved = localStorage.getItem('activeTest');
+    return saved ? JSON.parse(saved) : null;
+  });
 
-  // Initialize with some mock data for demo
+  const [results, setResults] = useState<StudentResult[]>(() => {
+    const saved = localStorage.getItem('results');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Lắng nghe thay đổi từ các tab khác (ví dụ: Tab học sinh nộp bài)
   useEffect(() => {
-    const mockResults: StudentResult[] = [
-      { id: '1', studentName: 'Nguyễn Văn A', studentClass: '6A1', score: 8.5, maxScore: 10, submittedAt: new Date().toISOString(), answers: {} },
-      { id: '2', studentName: 'Trần Thị B', studentClass: '6A1', score: 4.0, maxScore: 10, submittedAt: new Date().toISOString(), answers: {} },
-      { id: '3', studentName: 'Lê Văn C', studentClass: '6A1', score: 9.5, maxScore: 10, submittedAt: new Date().toISOString(), answers: {} },
-      { id: '4', studentName: 'Phạm Minh D', studentClass: '6A1', score: 6.5, maxScore: 10, submittedAt: new Date().toISOString(), answers: {} },
-    ];
-    setResults(mockResults);
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'results' && e.newValue) {
+        setResults(JSON.parse(e.newValue));
+      }
+      if (e.key === 'activeTest' && e.newValue) {
+        setActiveTest(JSON.parse(e.newValue));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
+
+  // Sync state to localStorage mỗi khi state thay đổi
+  useEffect(() => {
+    localStorage.setItem('activeTest', JSON.stringify(activeTest));
+  }, [activeTest]);
+
+  useEffect(() => {
+    localStorage.setItem('results', JSON.stringify(results));
+  }, [results]);
 
   const handleRoleSelect = (role: UserRole) => {
     setUserRole(role);
@@ -35,14 +57,30 @@ const App: React.FC = () => {
   };
 
   const handleTestGenerated = (test: TestData) => {
-    setActiveTest(test);
+    const testWithCode = {
+      ...test,
+      testCode: `ENG${test.grade}-${Math.floor(1000 + Math.random() * 9000)}`,
+      isPublished: false
+    };
+    setActiveTest(testWithCode);
     setCurrentView(View.TEACHER_DASHBOARD);
   };
 
-  const handleStudentSubmit = (result: StudentResult) => {
-    setResults(prev => [...prev, result]);
-    // Stay in student portal for result view
+  const handleTogglePublish = () => {
+    if (activeTest) {
+      const updatedTest = { ...activeTest, isPublished: !activeTest.isPublished };
+      setActiveTest(updatedTest);
+    }
   };
+
+  const handleStudentSubmit = useCallback((result: StudentResult) => {
+    setResults(prev => {
+      const newResults = [...prev, result];
+      // Cập nhật ngay lập tức để trigger storage event cho tab khác
+      localStorage.setItem('results', JSON.stringify(newResults));
+      return newResults;
+    });
+  }, []);
 
   const handleLogout = () => {
     setUserRole(UserRole.NONE);
@@ -53,7 +91,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-screen bg-slate-50 overflow-hidden text-slate-900">
       <Sidebar 
         currentView={currentView} 
         setView={setCurrentView} 
@@ -70,6 +108,12 @@ const App: React.FC = () => {
                   activeTest={activeTest} 
                   resultsCount={results.length} 
                   onCreateClick={() => setCurrentView(View.CREATE_TEST)}
+                  onTogglePublish={handleTogglePublish}
+                  onDeleteTest={() => {
+                    if(confirm("Bạn có chắc muốn xóa đề này? Kết quả học sinh đã làm vẫn sẽ được lưu.")) {
+                      setActiveTest(null);
+                    }
+                  }}
                 />
               )}
               {currentView === View.CREATE_TEST && (
