@@ -54,12 +54,11 @@ const App: React.FC = () => {
   };
 
   const handleTestGenerated = (test: TestData) => {
-    const testWithCode = {
+    const newTest = {
       ...test,
-      testCode: `ENG${test.grade}-${Math.floor(1000 + Math.random() * 9000)}`,
       isPublished: false
     };
-    setActiveTest(testWithCode);
+    setActiveTest(newTest);
     setCurrentView(View.TEACHER_DASHBOARD);
   };
 
@@ -88,7 +87,6 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden text-slate-900">
-      {/* Sidebar chỉ hiện trên Desktop */}
       <Sidebar 
         currentView={currentView} 
         setView={setCurrentView} 
@@ -96,7 +94,6 @@ const App: React.FC = () => {
         onLogout={handleLogout}
       />
       
-      {/* Main content: Bỏ padding cứng md:p-8 để mobile thoáng hơn */}
       <main className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8">
         <div className="max-w-6xl mx-auto w-full">
           {userRole === UserRole.TEACHER && (

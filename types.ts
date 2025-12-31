@@ -9,8 +9,10 @@ export enum Grade {
 export enum TestType {
   MIN_15 = '15 Phút',
   MIN_45 = '1 Tiết (45 Phút)',
-  MID_TERM = 'Giữa Kỳ',
-  FINAL_TERM = 'Cuối Kỳ'
+  MID_TERM_1 = 'Giữa Kỳ 1',
+  FINAL_TERM_1 = 'Cuối Kỳ 1',
+  MID_TERM_2 = 'Giữa Kỳ 2',
+  FINAL_TERM_2 = 'Cuối Kỳ 2'
 }
 
 export interface Question {
@@ -29,7 +31,6 @@ export interface TestData {
   unit: string;
   duration: number;
   questions: Question[];
-  testCode?: string;
   isPublished?: boolean;
 }
 
