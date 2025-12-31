@@ -12,7 +12,6 @@ const App: React.FC = () => {
   const [userRole, setUserRole] = useState<UserRole>(UserRole.NONE);
   const [currentView, setCurrentView] = useState<View>(View.TEACHER_DASHBOARD);
   
-  // Load initial state from localStorage
   const [activeTest, setActiveTest] = useState<TestData | null>(() => {
     const saved = localStorage.getItem('activeTest');
     return saved ? JSON.parse(saved) : null;
@@ -23,7 +22,6 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Lắng nghe thay đổi từ các tab khác (ví dụ: Tab học sinh nộp bài)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'results' && e.newValue) {
@@ -38,7 +36,6 @@ const App: React.FC = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Sync state to localStorage mỗi khi state thay đổi
   useEffect(() => {
     localStorage.setItem('activeTest', JSON.stringify(activeTest));
   }, [activeTest]);
@@ -76,7 +73,6 @@ const App: React.FC = () => {
   const handleStudentSubmit = useCallback((result: StudentResult) => {
     setResults(prev => {
       const newResults = [...prev, result];
-      // Cập nhật ngay lập tức để trigger storage event cho tab khác
       localStorage.setItem('results', JSON.stringify(newResults));
       return newResults;
     });
@@ -92,6 +88,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden text-slate-900">
+      {/* Sidebar chỉ hiện trên Desktop */}
       <Sidebar 
         currentView={currentView} 
         setView={setCurrentView} 
@@ -99,8 +96,9 @@ const App: React.FC = () => {
         onLogout={handleLogout}
       />
       
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">
-        <div className="max-w-6xl mx-auto">
+      {/* Main content: Bỏ padding cứng md:p-8 để mobile thoáng hơn */}
+      <main className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8">
+        <div className="max-w-6xl mx-auto w-full">
           {userRole === UserRole.TEACHER && (
             <>
               {currentView === View.TEACHER_DASHBOARD && (
@@ -110,7 +108,7 @@ const App: React.FC = () => {
                   onCreateClick={() => setCurrentView(View.CREATE_TEST)}
                   onTogglePublish={handleTogglePublish}
                   onDeleteTest={() => {
-                    if(confirm("Bạn có chắc muốn xóa đề này? Kết quả học sinh đã làm vẫn sẽ được lưu.")) {
+                    if(confirm("Bạn có chắc muốn xóa đề này?")) {
                       setActiveTest(null);
                     }
                   }}

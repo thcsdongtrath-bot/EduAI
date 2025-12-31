@@ -26,11 +26,11 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ test, onSubmit, results }
       return;
     }
     if (studentInfo.testCodeInput.toUpperCase() !== test.testCode?.toUpperCase()) {
-      setError('Mã phòng thi không chính xác. Vui lòng kiểm tra lại!');
+      setError('Mã phòng thi không chính xác!');
       return;
     }
     if (!studentInfo.name.trim() || !studentInfo.class.trim()) {
-      setError('Vui lòng nhập đầy đủ Họ tên và Lớp.');
+      setError('Vui lòng nhập đủ Họ tên và Lớp.');
       return;
     }
     setStarted(true);
@@ -44,10 +44,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ test, onSubmit, results }
     test.questions.forEach(q => {
       const studentAnswer = answers[q.id] || "";
       if (q.options && q.options.length > 0) {
-        // Trắc nghiệm
         if (studentAnswer === q.answer) correctCount++;
       } else {
-        // Tự luận (sắp xếp/viết lại)
         if (normalizeString(studentAnswer) === normalizeString(q.answer)) correctCount++;
       }
     });
@@ -68,70 +66,43 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ test, onSubmit, results }
     setCurrentResult(result);
     setFinished(true);
     onSubmit(result);
-    // Cuộn lên đầu trang để xem kết quả
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // MÀN HÌNH KẾT QUẢ - Ưu tiên hiển thị hàng đầu
+  // 1. MÀN HÌNH KẾT QUẢ (RESPONSIVE)
   if (finished && currentResult) {
     const isPassed = currentResult.score >= 5;
     const scoreColor = currentResult.score >= 8 ? 'text-emerald-500' : currentResult.score >= 5 ? 'text-blue-500' : 'text-red-500';
     
     return (
-      <div className="max-w-4xl mx-auto space-y-8 animate-in zoom-in duration-300 pb-20">
-        <div className="bg-white p-12 rounded-[3rem] shadow-2xl border border-slate-100 text-center relative overflow-hidden">
-          <div className={`absolute top-0 left-0 w-full h-3 ${isPassed ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+      <div className="w-full max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in zoom-in duration-300 pb-20 px-2 sm:px-4">
+        <div className="bg-white p-6 sm:p-10 md:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-slate-100 text-center relative overflow-hidden">
+          <div className={`absolute top-0 left-0 w-full h-2 sm:h-3 ${isPassed ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
           
-          <div className="text-7xl mb-6">{isPassed ? '🎊' : '📚'}</div>
-          <h2 className="text-4xl font-black text-slate-900 mb-2">Chúc mừng bạn đã hoàn thành!</h2>
-          <p className="text-slate-500 text-lg mb-10">Thí sinh: <span className="font-black text-slate-800">{currentResult.studentName}</span> • Lớp: <span className="font-black text-slate-800">{currentResult.studentClass}</span></p>
+          <div className="text-5xl sm:text-7xl mb-4 sm:mb-6">{isPassed ? '🎊' : '📚'}</div>
+          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 mb-2">Hoàn thành bài thi!</h2>
+          <p className="text-slate-500 text-sm sm:text-lg mb-6 sm:mb-10">
+            Thí sinh: <span className="font-black text-slate-800">{currentResult.studentName}</span> • Lớp: <span className="font-black text-slate-800">{currentResult.studentClass}</span>
+          </p>
           
-          <div className="flex flex-col items-center justify-center bg-slate-50 py-10 rounded-[2.5rem] mb-10 border border-slate-100">
-            <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Điểm số của bạn</p>
-            <div className={`text-9xl font-black ${scoreColor} drop-shadow-sm`}>
+          <div className="flex flex-col items-center justify-center bg-slate-50 py-6 sm:py-10 rounded-[2rem] mb-6 sm:mb-10 border border-slate-100">
+            <p className="text-[10px] sm:text-sm font-black text-slate-400 uppercase tracking-widest mb-2">Điểm của bạn</p>
+            <div className={`text-7xl sm:text-9xl font-black ${scoreColor} drop-shadow-sm`}>
               {currentResult.score}
             </div>
-            <div className="text-xl font-bold text-slate-400 mt-2">thang điểm 10</div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            <div className="p-6 bg-blue-50 rounded-3xl text-left border border-blue-100">
-              <h4 className="font-black text-blue-800 mb-2 flex items-center gap-2">
-                <span>🤖</span> Nhận xét thông minh:
-              </h4>
-              <p className="text-blue-700 text-sm leading-relaxed font-medium italic">
-                {currentResult.score >= 9 ? "Tuyệt vời! Bạn là một ngôi sao Tiếng Anh thực thụ. Hãy tiếp tục phát huy nhé!" :
-                 currentResult.score >= 7 ? "Rất tốt! Bạn nắm vững kiến thức trọng tâm. Một chút cẩn thận nữa là đạt điểm tối đa rồi." :
-                 currentResult.score >= 5 ? "Khá ổn. Bạn đã đạt mức yêu cầu, hãy ôn tập thêm các câu sai để tiến bộ hơn." :
-                 "Cố gắng lên! Kết quả này chưa phản ánh hết khả năng của bạn đâu. Hãy ôn lại bài và thử lại nhé."}
-              </p>
-            </div>
-            <div className="p-6 bg-slate-900 rounded-3xl text-left text-white">
-              <h4 className="font-black mb-2 flex items-center gap-2 text-blue-400">
-                <span>📍</span> Ghi chú bài làm:
-              </h4>
-              <ul className="text-xs space-y-2 opacity-80 font-medium">
-                <li>• Thời gian nộp: {new Date(currentResult.submittedAt).toLocaleTimeString('vi-VN')}</li>
-                <li>• Tổng số câu hỏi: {test?.questions.length}</li>
-                <li>• Kết quả đã được gửi tới giáo viên chủ nhiệm.</li>
-              </ul>
-            </div>
+            <div className="text-sm sm:text-xl font-bold text-slate-400 mt-2">thang điểm 10</div>
           </div>
 
           <button 
             onClick={() => { setStarted(false); setFinished(false); setCurrentResult(null); setAnswers({}); }}
-            className="px-12 py-5 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95"
+            className="w-full sm:w-auto px-10 py-4 sm:py-5 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95"
           >
             Quay lại trang chủ
           </button>
         </div>
 
-        <div className="space-y-6">
-          <div className="flex items-center justify-between px-4">
-            <h3 className="text-2xl font-black text-slate-900">Xem lại chi tiết</h3>
-            <span className="px-4 py-2 bg-white rounded-full text-xs font-bold text-slate-400 border border-slate-200 uppercase tracking-widest">Đáp án & Giải thích</span>
-          </div>
-          
+        <div className="space-y-4 sm:space-y-6">
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 px-2">Xem lại chi tiết</h3>
           {test?.questions.map((q, idx) => {
             const studentAns = answers[q.id] || "";
             const isCorrect = q.options && q.options.length > 0 
@@ -139,31 +110,24 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ test, onSubmit, results }
               : normalizeString(studentAns) === normalizeString(q.answer);
 
             return (
-              <div key={q.id} className={`p-8 rounded-[2rem] border-2 bg-white transition-all shadow-sm ${isCorrect ? 'border-emerald-100' : 'border-red-100'}`}>
-                <div className="flex gap-6">
+              <div key={q.id} className={`p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] border-2 bg-white shadow-sm ${isCorrect ? 'border-emerald-100' : 'border-red-100'}`}>
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                   <span className={`w-10 h-10 rounded-xl flex items-center justify-center font-black flex-shrink-0 text-lg ${isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                     {idx + 1}
                   </span>
                   <div className="flex-1 space-y-4">
-                    <p className="text-xl font-bold text-slate-900 leading-relaxed">{q.content}</p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className={`p-4 rounded-2xl font-bold ${isCorrect ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'}`}>
-                        <span className="text-[10px] uppercase block opacity-60 mb-1">Bạn đã chọn:</span>
+                    <p className="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed">{q.content}</p>
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className={`p-4 rounded-xl font-bold text-sm sm:text-base ${isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                        <span className="text-[10px] uppercase block opacity-60 mb-1">Bạn chọn:</span>
                         {studentAns || "(Bỏ trống)"}
                       </div>
-                      
                       {!isCorrect && (
-                        <div className="p-4 bg-blue-50 text-blue-700 rounded-2xl border border-blue-100 font-bold">
+                        <div className="p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 font-bold text-sm sm:text-base">
                           <span className="text-[10px] uppercase block opacity-60 mb-1">Đáp án đúng:</span>
                           {q.answer}
                         </div>
                       )}
-                    </div>
-
-                    <div className="mt-4 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">💡 Giải thích từ AI:</p>
-                      <p className="text-sm text-slate-600 font-medium leading-relaxed">{q.explanation}</p>
                     </div>
                   </div>
                 </div>
@@ -175,72 +139,57 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ test, onSubmit, results }
     );
   }
 
-  // TRẠNG THÁI PHÒNG THI ĐÓNG
-  if (!test || !test.isPublished) {
-    if (started) setStarted(false);
-    return (
-      <div className="bg-white p-12 rounded-[3rem] shadow-xl border border-slate-200 text-center max-w-2xl mx-auto animate-in zoom-in duration-500">
-        <div className="w-24 h-24 bg-slate-50 text-slate-400 rounded-[2rem] flex items-center justify-center text-5xl mx-auto mb-8 border border-slate-100">🔒</div>
-        <h3 className="text-3xl font-black text-slate-900">Phòng thi đang đóng</h3>
-        <p className="text-slate-500 mt-4 text-lg leading-relaxed font-medium">
-          Giáo viên hiện chưa mở bài kiểm tra hoặc đã kết thúc buổi giao bài. 
-          Vui lòng quay lại sau hoặc liên hệ với giáo viên của bạn.
-        </p>
-      </div>
-    );
-  }
-
-  // MÀN HÌNH VÀO PHÒNG (LOGIN)
+  // 2. MÀN HÌNH VÀO PHÒNG (RESPONSIVE)
   if (!started) {
     return (
-      <div className="bg-white p-12 rounded-[3rem] shadow-2xl border border-slate-200 max-w-lg mx-auto animate-in fade-in slide-in-from-top-4 duration-300">
-        <div className="text-center mb-10">
-          <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-[2rem] flex items-center justify-center text-4xl mx-auto mb-6 border border-emerald-100">🎓</div>
-          <h2 className="text-4xl font-black text-slate-900">Vào phòng thi</h2>
-          <p className="text-slate-500 mt-2 font-bold opacity-70">EduAI English Pro Examination</p>
+      <div className="w-full max-w-md mx-auto bg-white p-6 sm:p-10 md:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-slate-200 animate-in fade-in slide-in-from-top-4 duration-300 mt-4 sm:mt-10">
+        <div className="text-center mb-8 sm:mb-10">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-50 text-emerald-600 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center text-3xl sm:text-4xl mx-auto mb-4 sm:mb-6 border border-emerald-100">🎓</div>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900">Vào phòng thi</h2>
+          <p className="text-slate-500 mt-2 text-sm font-bold opacity-70 uppercase tracking-widest">English Pro Exam</p>
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-[0.2em] ml-2">Mã phòng thi</label>
+            <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest ml-2">Mã phòng thi</label>
             <input 
               type="text" 
-              className="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl outline-none focus:ring-8 focus:ring-emerald-50 focus:border-emerald-400 transition-all font-mono text-3xl text-center font-black text-emerald-600 placeholder:text-slate-200 uppercase"
-              placeholder="ENGX-XXXX"
+              className="w-full p-4 sm:p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl sm:rounded-3xl outline-none focus:ring-4 focus:ring-emerald-50 focus:border-emerald-400 transition-all font-mono text-2xl sm:text-3xl text-center font-black text-emerald-600 placeholder:text-slate-200 uppercase"
+              placeholder="MÃ PHÒNG"
               value={studentInfo.testCodeInput}
               onChange={e => { setStudentInfo({...studentInfo, testCodeInput: e.target.value.toUpperCase()}); setError(''); }}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-[0.2em] ml-2">Họ và tên</label>
+              <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest ml-2">Họ và tên</label>
               <input 
                 type="text" 
-                className="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-400 outline-none transition-all font-bold"
-                placeholder="Nguyễn Văn A"
+                className="w-full p-4 sm:p-5 bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl focus:border-blue-400 outline-none transition-all font-bold text-sm sm:text-base"
+                placeholder="Nhập tên của bạn"
                 value={studentInfo.name}
                 onChange={e => setStudentInfo({...studentInfo, name: e.target.value})}
               />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-[0.2em] ml-2">Lớp</label>
+              <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest ml-2">Lớp</label>
               <input 
                 type="text" 
-                className="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-400 outline-none transition-all font-bold text-center"
-                placeholder="6A1"
+                className="w-full p-4 sm:p-5 bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl focus:border-blue-400 outline-none transition-all font-bold text-center text-sm sm:text-base"
+                placeholder="Ví dụ: 6A1"
                 value={studentInfo.class}
                 onChange={e => setStudentInfo({...studentInfo, class: e.target.value})}
               />
             </div>
           </div>
 
-          {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-black animate-bounce text-center uppercase tracking-wider">{error}</div>}
+          {error && <div className="p-3 sm:p-4 bg-red-50 text-red-600 rounded-xl text-[10px] sm:text-xs font-black animate-pulse text-center uppercase tracking-widest">{error}</div>}
 
           <button 
             disabled={!studentInfo.name || !studentInfo.class || !studentInfo.testCodeInput}
             onClick={handleStart}
-            className="w-full py-6 bg-emerald-600 text-white font-black text-xl rounded-3xl hover:bg-emerald-700 shadow-2xl shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+            className="w-full py-5 sm:py-6 bg-emerald-600 text-white font-black text-lg sm:text-xl rounded-2xl sm:rounded-3xl hover:bg-emerald-700 shadow-xl transition-all active:scale-95 disabled:opacity-50 mt-4"
           >
             Bắt đầu làm bài 🚀
           </button>
@@ -249,37 +198,39 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ test, onSubmit, results }
     );
   }
 
-  // GIAO DIỆN LÀM BÀI
+  // 3. GIAO DIỆN LÀM BÀI (RESPONSIVE)
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
-      <header className="bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] border border-white shadow-2xl flex justify-between items-center sticky top-4 z-20">
-        <div className="flex items-center gap-5">
-          <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-blue-200">{test.grade}</div>
-          <div>
-            <h3 className="text-xl font-black text-slate-900 leading-none">{test.title}</h3>
-            <p className="text-xs text-slate-400 mt-2 font-black uppercase tracking-widest">{studentInfo.name} • Lớp {studentInfo.class}</p>
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-8 animate-in fade-in duration-500 pb-20 px-1 sm:px-4">
+      {/* Header thu gọn trên mobile */}
+      <header className="bg-white/90 backdrop-blur-md p-3 sm:p-5 md:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-white shadow-xl flex justify-between items-center sticky top-2 z-30">
+        <div className="flex items-center gap-3 sm:gap-5">
+          <div className="w-10 h-10 sm:w-14 sm:h-14 bg-blue-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-sm sm:text-xl shadow-lg">{test?.grade}</div>
+          <div className="overflow-hidden">
+            <h3 className="text-xs sm:text-lg font-black text-slate-900 truncate max-w-[120px] sm:max-w-none">{test?.title}</h3>
+            <p className="text-[8px] sm:text-xs text-slate-400 font-bold uppercase truncate">{studentInfo.name} • Lớp {studentInfo.class}</p>
           </div>
         </div>
-        <div className="px-6 py-3 bg-red-50 rounded-2xl border border-red-100 text-center">
-             <span className="text-[10px] font-black text-red-400 block uppercase tracking-widest mb-0.5">Thời gian còn lại</span>
-             <span className="text-2xl font-mono font-black text-red-600">{test.duration}:00</span>
+        <div className="px-3 py-1.5 sm:px-6 sm:py-3 bg-red-50 rounded-lg sm:rounded-2xl border border-red-100 text-center min-w-[70px] sm:min-w-[100px]">
+             <span className="text-[7px] sm:text-[10px] font-black text-red-400 block uppercase tracking-widest">Thời gian</span>
+             <span className="text-sm sm:text-2xl font-mono font-black text-red-600">{test?.duration}:00</span>
         </div>
       </header>
 
-      <div className="space-y-10">
-        {test.questions.map((q, idx) => (
-          <div key={q.id} className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300">
-            <div className="flex gap-8">
-              <span className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black flex-shrink-0 text-xl shadow-lg">{idx + 1}</span>
-              <div className="space-y-6 flex-1">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-wider border border-blue-100">{q.type}</span>
-                  <span className="text-slate-400 text-sm italic font-bold">Instruction: {q.instruction}</span>
+      {/* Danh sách câu hỏi */}
+      <div className="space-y-6 sm:space-y-10">
+        {test?.questions.map((q, idx) => (
+          <div key={q.id} className="bg-white p-5 sm:p-10 rounded-[1.5rem] sm:rounded-[3rem] border border-slate-200 shadow-sm transition-all duration-300">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
+              <span className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black flex-shrink-0 text-lg sm:text-xl">{idx + 1}</span>
+              <div className="space-y-4 sm:space-y-6 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-wider">{q.type}</span>
+                  <span className="text-slate-400 text-[10px] sm:text-sm italic font-bold">Instruction: {q.instruction}</span>
                 </div>
-                <p className="text-2xl font-bold text-slate-900 leading-relaxed">{q.content}</p>
+                <p className="text-lg sm:text-2xl font-bold text-slate-900 leading-relaxed">{q.content}</p>
                 
                 {q.options && q.options.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
                     {q.options.map((opt, optIdx) => {
                       const label = String.fromCharCode(65 + optIdx);
                       const isSelected = answers[q.id] === label;
@@ -287,14 +238,14 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ test, onSubmit, results }
                         <button
                           key={optIdx}
                           onClick={() => setAnswers({...answers, [q.id]: label})}
-                          className={`flex items-center gap-5 p-6 rounded-3xl border-2 text-left transition-all group ${
-                            isSelected ? 'border-blue-600 bg-blue-50/50 ring-8 ring-blue-50' : 'border-slate-50 bg-slate-50 hover:border-slate-200'
+                          className={`flex items-center gap-3 sm:gap-5 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 text-left transition-all active:scale-95 ${
+                            isSelected ? 'border-blue-600 bg-blue-50/50' : 'border-slate-50 bg-slate-50'
                           }`}
                         >
-                          <span className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-black border-2 transition-all ${
-                             isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-slate-300 border-slate-100 group-hover:border-slate-300'
+                          <span className={`w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-sm sm:text-lg font-black border-2 transition-all ${
+                             isSelected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-300 border-slate-100'
                           }`}>{label}</span>
-                          <span className={`text-lg font-bold ${isSelected ? 'text-blue-900' : 'text-slate-600'}`}>{opt}</span>
+                          <span className={`text-sm sm:text-lg font-bold ${isSelected ? 'text-blue-900' : 'text-slate-600'}`}>{opt}</span>
                         </button>
                       );
                     })}
@@ -302,13 +253,12 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ test, onSubmit, results }
                 ) : (
                   <div className="relative">
                     <textarea
-                      rows={4}
-                      className="w-full p-8 bg-slate-50 border-2 border-slate-100 rounded-[2rem] outline-none focus:ring-8 focus:ring-blue-50 focus:border-blue-400 transition-all text-xl font-bold placeholder:text-slate-200"
-                      placeholder="Type your answer here..."
+                      rows={3}
+                      className="w-full p-4 sm:p-8 bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-[2rem] outline-none focus:border-blue-400 transition-all text-sm sm:text-xl font-bold"
+                      placeholder="Nhập câu trả lời của bạn..."
                       value={answers[q.id] || ""}
                       onChange={(e) => setAnswers({...answers, [q.id]: e.target.value})}
                     ></textarea>
-                    <div className="absolute top-4 right-6 text-[10px] font-black text-slate-300 uppercase tracking-widest">Writing Section</div>
                   </div>
                 )}
               </div>
@@ -317,15 +267,16 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ test, onSubmit, results }
         ))}
       </div>
 
-      <div className="flex flex-col items-center gap-4 pt-10 pb-20">
+      {/* Nút nộp bài (Lớn, dễ bấm) */}
+      <div className="flex flex-col items-center gap-3 pt-6 pb-20">
         <button 
           onClick={handleSubmit}
-          className="px-24 py-8 bg-emerald-600 text-white font-black text-3xl rounded-[2.5rem] hover:bg-emerald-700 shadow-[0_20px_50px_rgba(16,185,129,0.3)] hover:-translate-y-2 transition-all active:scale-95 flex items-center gap-6"
+          className="w-full sm:w-auto px-12 sm:px-24 py-5 sm:py-8 bg-emerald-600 text-white font-black text-xl sm:text-3xl rounded-2xl sm:rounded-[2.5rem] hover:bg-emerald-700 shadow-xl active:scale-95 flex items-center justify-center gap-4 sm:gap-6"
         >
           <span>NỘP BÀI THI</span>
-          <span className="text-4xl">🚀</span>
+          <span className="text-2xl sm:text-4xl">🚀</span>
         </button>
-        <p className="text-slate-400 text-sm font-bold uppercase tracking-[0.2em]">Hãy kiểm tra kỹ bài làm trước khi nộp</p>
+        <p className="text-slate-400 text-[10px] sm:text-sm font-bold uppercase tracking-widest">Kiểm tra kỹ trước khi nộp</p>
       </div>
     </div>
   );
